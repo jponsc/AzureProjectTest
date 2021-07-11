@@ -1,0 +1,36 @@
+name: execute-espresso-tests
+
+on:
+  workflow_dispatch:
+    inputs:
+        test-branch:
+          description: 'Insert the name of the branch'     
+          required: false
+          default: 'master'
+
+jobs:
+  execute-espresso-tests:
+    name: execute-espresso-tests
+    timeout-minutes: 600
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.inputs.test-branch }}
+      
+      - name: run tests
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 29
+          target: google_apis
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
+          script: ./gradlew connectedAndroidTest
+          
+      - name: Archive reports
+        if: always() 
+        uses: actions/upload-artifact@v2
+        with:
+          name: reports
+          path: app/build/reports/androidTests/connected
+          
